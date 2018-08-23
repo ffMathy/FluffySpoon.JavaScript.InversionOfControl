@@ -1,0 +1,40 @@
+{
+    "name": "@fluffy-spoon/inverse",
+    "version": "1.0.0",
+    "description": "",
+    "main": "dist/src/Index.js",
+    "typings": "./dist/src/Index.d.ts",
+    "scripts": {
+        "test": "tsc && ava",
+        "build": "tsc"
+    },
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "ava": "^0.25.0",
+        "ts-node": "^7.0.1",
+        "typescript": "^3.0.1"
+    },
+    "dependencies": {
+        "reflect-metadata": "^0.1.12"
+    },
+    "ava": {
+        "files": [
+            "./dist/spec/*.js"
+        ],
+        "sources": [
+            "./src/**/*.ts",
+            "./spec/**/*.test.ts",
+            "./dist/src/**/*.js",
+            "./dist/spec/**/*.test.js"
+        ],
+        "failFast": true,
+        "compileEnhancements": false,
+        "extensions": [
+            "ts"
+        ],
+        "require": [
+            "ts-node/register"
+        ]
+    }
+}
