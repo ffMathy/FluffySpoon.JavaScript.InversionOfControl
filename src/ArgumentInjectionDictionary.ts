@@ -1,8 +1,10 @@
+import { extractClassName } from "./Utilities";
+
 export class ArgumentInjectionDictionary {
     private readonly _dictionary;
     private readonly _indexes: number[];
 
-    constructor() {
+    constructor(private _target: any) {
         this._dictionary = {};
         this._indexes = [];
     }
@@ -12,6 +14,9 @@ export class ArgumentInjectionDictionary {
     }
 
     getParameter(index: number) {
+        if(!this._dictionary[index.toString()])
+            throw new Error('No parameter at index ' + index + ' was found on constructor of class ' + extractClassName(this._target) + '.');
+
         return this._dictionary[index.toString()];
     }
 
@@ -25,7 +30,8 @@ export class ArgumentInjectionDictionary {
     }
 
     updateParameterAtIndex(index: number, value?: any) {
-        this._dictionary[index.toString()] = value || null;
+        if(value || !this._dictionary[index.toString()])
+            this._dictionary[index.toString()] = value || null;
         
         if(this._indexes.indexOf(index) === -1)
             this._indexes.push(index);

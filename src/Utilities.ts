@@ -1,6 +1,7 @@
 import "reflect-metadata";
 
 import { ArgumentInjectionDictionary } from "./ArgumentInjectionDictionary";
+import { Constructor } from "./Types";
 
 export function defineMetadata(target, key, value) {
     Reflect.defineMetadata('@fluffy-spoon/inverse/' + key, value, target);
@@ -13,8 +14,13 @@ export function getMetadata<T>(target, key) {
 export function getOrCreateArgumentsMetadataForTarget(target: any) {
     let argumentInjectionDictionary = getMetadata<ArgumentInjectionDictionary>(target, 'arguments');
     if (!argumentInjectionDictionary) {
-        argumentInjectionDictionary = new ArgumentInjectionDictionary();
+        argumentInjectionDictionary = new ArgumentInjectionDictionary(target);
         defineMetadata(target, 'arguments', argumentInjectionDictionary);
     }
+    
     return argumentInjectionDictionary;
+}
+
+export function extractClassName(constructor: Constructor<any>) {
+    return (constructor && (constructor as any).name) || constructor;
 }

@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+require("reflect-metadata");
 var Container_1 = require("./Container");
 exports.Container = Container_1.Container;
 var Decorators_1 = require("./Decorators");

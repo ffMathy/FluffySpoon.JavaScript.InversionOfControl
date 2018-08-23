@@ -27,6 +27,9 @@ export class PendingResolveJob {
         private _parent: PendingResolveJob,
         private _argumentIndex: number) 
     {
-        this._argumentInjectionDictionary = new ArgumentInjectionDictionary();
+        if(!_constructor)
+            throw new Error('Must specify a constructor.');
+
+        this._argumentInjectionDictionary = new ArgumentInjectionDictionary(_constructor);
     }
 }

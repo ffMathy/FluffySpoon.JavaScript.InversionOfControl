@@ -6,7 +6,9 @@ var PendingResolveJob = /** @class */ (function () {
         this._constructor = _constructor;
         this._parent = _parent;
         this._argumentIndex = _argumentIndex;
-        this._argumentInjectionDictionary = new ArgumentInjectionDictionary_1.ArgumentInjectionDictionary();
+        if (!_constructor)
+            throw new Error('Must specify a constructor.');
+        this._argumentInjectionDictionary = new ArgumentInjectionDictionary_1.ArgumentInjectionDictionary(_constructor);
     }
     Object.defineProperty(PendingResolveJob.prototype, "constructor", {
         get: function () {

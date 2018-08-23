@@ -2,7 +2,7 @@ import test from 'ava';
 import { Injectable, Inject, Container } from "../src";
 
 @Injectable
-abstract class B1 {
+class B1 {
 
 }
 
@@ -12,23 +12,33 @@ class B2 {
 }
 
 @Injectable
-class A1 {
-    constructor(
-        @Inject private a: B1) 
-    {
-    }
-}
-
-@Injectable
 class A2 {
 
 }
 
 @Injectable
+class A1 {
+    constructor(
+        @Inject public a: B1,
+        @Inject public c: B2,
+        @Inject public b: A2) 
+    {
+    }
+}
+
+@Injectable
+class ExplodingB2 extends B2 {
+    constructor() {
+        throw new Error('Too bad');
+    }
+}
+
+@Injectable
 class Bar {
     constructor(
-        @Inject private a: A1, 
-        @Inject private b: A2) 
+        @Inject public a: A1, 
+        @Inject public b: A2, 
+        @Inject public c: A2) 
     {
     }
 }
@@ -40,5 +50,25 @@ test.beforeEach(() => {
 });
 
 test('can resolve Bar', t => {
-	t.notDeepEqual(container.resolve(Bar), null);
+    const bar = container.resolve(Bar);
+
+    t.not(bar, null);
+
+    t.not(bar.a, null);
+    t.not(bar.a.a, null);
+    t.not(bar.a.b, null);
+    t.not(bar.a.c, null);
+
+    t.not(bar.b, null);
+
+    t.not(bar.c, null);
+    
+    t.not(bar.c, bar.b);
+    t.not(bar.c, bar.a.b);
+});
+
+test('explodes when using exploding dependency for Bar', t => {
+    container.whenRequestingType(B2).useType(ExplodingB2);
+
+    const bar = container.resolve(Bar);
 });

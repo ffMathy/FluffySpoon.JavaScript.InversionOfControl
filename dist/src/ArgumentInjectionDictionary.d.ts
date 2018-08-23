@@ -1,7 +1,8 @@
 export declare class ArgumentInjectionDictionary {
+    private _target;
     private readonly _dictionary;
     private readonly _indexes;
-    constructor();
+    constructor(_target: any);
     getParameterIndexes(): number[];
     getParameter(index: number): any;
     toParameterArray(): any[];

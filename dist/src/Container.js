@@ -25,6 +25,7 @@ var Container = /** @class */ (function () {
             try {
                 var parentJob = job.parent;
                 var constructor = job.constructor;
+                var className = Utilities_1.extractClassName(constructor);
                 for (var _i = 0, _b = this._typeMappings; _i < _b.length; _i++) {
                     var mapping = _b[_i];
                     if (mapping.requestingType !== constructor)
@@ -32,7 +33,6 @@ var Container = /** @class */ (function () {
                     constructor = mapping.useType;
                     break;
                 }
-                var className = this.extractClassName(constructor);
                 if (constructor === String || constructor === Number)
                     throw new Error('Simple types (in this case ' + className + ') can\'t be injected.');
                 var argumentInjectionInstanceDictionary = job.argumentInjectionDictionary;
@@ -70,28 +70,34 @@ var Container = /** @class */ (function () {
                 }
             }
             catch (ex) {
-                if (!(ex instanceof Error))
-                    throw ex;
-                var err = ex;
-                var path = this.extractClassName(job.constructor);
-                var indentCount = 0;
+                var path = Utilities_1.extractClassName(job.constructor);
+                var pathCount = 1;
+                var jobIteration = void 0;
+                jobIteration = job;
                 while (true) {
-                    job = job.parent;
-                    if (!job)
+                    jobIteration = jobIteration.parent;
+                    if (!jobIteration)
+                        break;
+                    pathCount++;
+                }
+                var indentCount = pathCount - 1;
+                jobIteration = job;
+                while (true) {
+                    jobIteration = jobIteration.parent;
+                    if (!jobIteration)
                         break;
                     var indent = '';
                     for (var i = 0; i < indentCount; i++) {
-                        indent += ' ';
+                        indent += '   ';
                     }
-                    path = this.extractClassName(job.constructor) + '\n' + indent + '-> ' + path;
-                    indentCount++;
+                    path = Utilities_1.extractClassName(jobIteration.constructor) + '\n' + indent + '-> ' + path;
+                    indentCount--;
                 }
-                throw new Error(err.message + '\nWhile resolving:\n-> ' + path);
+                console && console.error('An error occured while resolving:\n-> ' + path + '\n\n', ex);
+                throw ex;
             }
         }
-    };
-    Container.prototype.extractClassName = function (constructor) {
-        return constructor.name || constructor;
+        throw new Error('Could not find a type to use for ' + Utilities_1.extractClassName(typeToResolve) + '.');
     };
     return Container;
 }());

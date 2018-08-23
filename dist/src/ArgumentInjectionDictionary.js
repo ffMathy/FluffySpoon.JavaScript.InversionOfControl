@@ -1,7 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var Utilities_1 = require("./Utilities");
 var ArgumentInjectionDictionary = /** @class */ (function () {
-    function ArgumentInjectionDictionary() {
+    function ArgumentInjectionDictionary(_target) {
+        this._target = _target;
         this._dictionary = {};
         this._indexes = [];
     }
@@ -9,6 +11,8 @@ var ArgumentInjectionDictionary = /** @class */ (function () {
         return this._indexes.slice();
     };
     ArgumentInjectionDictionary.prototype.getParameter = function (index) {
+        if (!this._dictionary[index.toString()])
+            throw new Error('No parameter at index ' + index + ' was found on constructor of class ' + Utilities_1.extractClassName(this._target) + '.');
         return this._dictionary[index.toString()];
     };
     ArgumentInjectionDictionary.prototype.toParameterArray = function () {
@@ -20,7 +24,8 @@ var ArgumentInjectionDictionary = /** @class */ (function () {
         return parameters;
     };
     ArgumentInjectionDictionary.prototype.updateParameterAtIndex = function (index, value) {
-        this._dictionary[index.toString()] = value || null;
+        if (value || !this._dictionary[index.toString()])
+            this._dictionary[index.toString()] = value || null;
         if (this._indexes.indexOf(index) === -1)
             this._indexes.push(index);
     };

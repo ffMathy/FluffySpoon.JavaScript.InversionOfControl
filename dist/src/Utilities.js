@@ -13,10 +13,14 @@ exports.getMetadata = getMetadata;
 function getOrCreateArgumentsMetadataForTarget(target) {
     var argumentInjectionDictionary = getMetadata(target, 'arguments');
     if (!argumentInjectionDictionary) {
-        argumentInjectionDictionary = new ArgumentInjectionDictionary_1.ArgumentInjectionDictionary();
+        argumentInjectionDictionary = new ArgumentInjectionDictionary_1.ArgumentInjectionDictionary(target);
         defineMetadata(target, 'arguments', argumentInjectionDictionary);
     }
     return argumentInjectionDictionary;
 }
 exports.getOrCreateArgumentsMetadataForTarget = getOrCreateArgumentsMetadataForTarget;
+function extractClassName(constructor) {
+    return (constructor && constructor.name) || constructor;
+}
+exports.extractClassName = extractClassName;
 //# sourceMappingURL=Utilities.js.map

@@ -2,7 +2,7 @@ import "reflect-metadata";
 
 import { Constructor } from "./Types";
 import { PendingResolveJob } from './PendingResolveJob';
-import { getMetadata } from "./Utilities";
+import { getMetadata, extractClassName } from "./Utilities";
 import { ArgumentInjectionDictionary } from "./ArgumentInjectionDictionary";
 
 export class Container {
@@ -24,7 +24,7 @@ export class Container {
         };
     }
 
-    resolve<T>(typeToResolve: Constructor<T>) {
+    resolve<T>(typeToResolve: Constructor<T>): T {
         const resolveJobs = new Array<PendingResolveJob>();
         resolveJobs.push(new PendingResolveJob(typeToResolve, null, null));
 
@@ -35,6 +35,8 @@ export class Container {
                 const parentJob = job.parent;
 
                 let constructor = job.constructor;
+                const className = extractClassName(constructor);
+
                 for(let mapping of this._typeMappings) {
                     if(mapping.requestingType !== constructor)
                         continue;
@@ -42,8 +44,6 @@ export class Container {
                     constructor = mapping.useType;
                     break;
                 }
-
-                const className = this.extractClassName(constructor);
 
                 if(constructor === String || constructor === Number)
                     throw new Error('Simple types (in this case ' + className + ') can\'t be injected.');
@@ -92,35 +92,44 @@ export class Container {
                     continue;
                 }
             } catch(ex) {
-                if(!(ex instanceof Error))
-                    throw ex;
+                let path = extractClassName(job.constructor);
+                let pathCount = 1;
 
-                const err = ex as Error;
+                let jobIteration: PendingResolveJob;
 
-                let path = this.extractClassName(job.constructor);
-                let indentCount = 0;
-
+                jobIteration = job;
                 while(true) {
-                    job = job.parent;
-                    if(!job)
+                    jobIteration = jobIteration.parent;
+                    if(!jobIteration)
+                        break;
+                    
+                    pathCount++;
+                }
+
+                let indentCount = pathCount - 1;
+
+                jobIteration = job;
+                while(true) {
+                    jobIteration = jobIteration.parent;
+                    if(!jobIteration)
                         break;
 
                     let indent = '';
                     for(var i=0;i<indentCount;i++) {
-                        indent += ' ';
+                        indent += '   ';
                     }
                     
-                    path = this.extractClassName(job.constructor) + '\n' + indent + '-> ' + path;
+                    path = extractClassName(jobIteration.constructor) + '\n' + indent + '-> ' + path;
 
-                    indentCount++;
+                    indentCount--;
                 }
 
-                throw new Error(err.message + '\nWhile resolving:\n-> ' + path);
+                console && console.error('An error occured while resolving:\n-> ' + path + '\n\n', ex);
+
+                throw ex;
             }
         }
-    }
 
-    private extractClassName(constructor: Constructor<any>) {
-        return (constructor as any).name || constructor;
+        throw new Error('Could not find a type to use for ' + extractClassName(typeToResolve) + '.');
     }
 }

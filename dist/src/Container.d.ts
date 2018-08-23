@@ -6,6 +6,5 @@ export declare class Container {
     whenRequestingType<T>(requestingType: Constructor<T>): {
         useType: (useType: Constructor<T>) => number;
     };
-    resolve<T>(typeToResolve: Constructor<T>): any;
-    private extractClassName;
+    resolve<T>(typeToResolve: Constructor<T>): T;
 }
