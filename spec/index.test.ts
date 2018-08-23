@@ -8,7 +8,7 @@ class B1 {
 
 @Injectable
 class B2 {
-
+    
 }
 
 @Injectable
@@ -27,7 +27,7 @@ class A1 {
 }
 
 @Injectable
-class ExplodingB2 extends B2 {
+class ExplodingB2 {
     constructor() {
         throw new Error('Too bad');
     }
@@ -62,6 +62,10 @@ test('can resolve Bar', t => {
     t.not(bar.b, null);
 
     t.not(bar.c, null);
+});
+
+test('can resolve Bar with instance per request', t => {
+    const bar = container.resolve(Bar);
     
     t.not(bar.c, bar.b);
     t.not(bar.c, bar.a.b);
@@ -70,5 +74,21 @@ test('can resolve Bar', t => {
 test('explodes when using exploding dependency for Bar', t => {
     container.whenRequestingType(B2).useType(ExplodingB2);
 
+    t.throws(() => container.resolve(Bar), (ex) => 
+        ex.message.indexOf(
+`An error occured while resolving:
+-> Bar
+   -> A1
+      -> B2
+
+Error: Too bad`) === 0);
+});
+
+test('can resolve Bar with singleton A2', t => {
+    container.whenRequestingType(A2).useRequestedType().asSingleInstance();
+
     const bar = container.resolve(Bar);
+
+    t.is(bar.c, bar.b);
+    t.is(bar.c, bar.a.b);
 });

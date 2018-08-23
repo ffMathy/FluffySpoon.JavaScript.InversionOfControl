@@ -5,23 +5,79 @@ import { PendingResolveJob } from './PendingResolveJob';
 import { getMetadata, extractClassName } from "./Utilities";
 import { ArgumentInjectionDictionary } from "./ArgumentInjectionDictionary";
 
+type TypeMapping = {
+    requestingType: Constructor<any>,
+    lifetime: 'singleton' | 'per-request',
+    useType?: Constructor<any>,
+    useFactory?: () => any
+};
+
 export class Container {
-    private readonly _typeMappings: Array<{
-        requestingType: Constructor<any>,
-        useType: Constructor<any>
+    private readonly _typeMappings: Array<TypeMapping>;
+    private readonly _singletonCache: Array<{
+        type: Constructor,
+        instance: any
     }>;
 
     constructor() {
         this._typeMappings = [];
+        this._singletonCache = [];
     }
 
     whenRequestingType<T>(requestingType: Constructor<T>) {
-        return {
-            useType: (useType: Constructor<T>) => this._typeMappings.push({
-                requestingType,
-                useType
-            })
+        const typeMapping: TypeMapping = this.createNewTypeMapping(requestingType);
+
+        for(let existingTypeMapping of [...this._typeMappings]) {
+            if(existingTypeMapping.requestingType === requestingType)
+                this._typeMappings.splice(this._typeMappings.indexOf(existingTypeMapping), 1);
+        }
+
+        for(let existingSingletonCacheEntry of [...this._singletonCache]) {
+            if(existingSingletonCacheEntry.type === requestingType)
+                this._singletonCache.splice(this._singletonCache.indexOf(existingSingletonCacheEntry), 1);
+        }
+
+        this._typeMappings.push(typeMapping);
+
+        const use = (mappingCallback: (mapping: TypeMapping) => void) => {
+            mappingCallback(typeMapping);
+
+            return {
+                asSingleInstance: () => {
+                    this._singletonCache.push({
+                        instance: null,
+                        type: requestingType
+                    });
+                    typeMapping.lifetime = 'singleton';
+                },
+                asInstancePerRequest: () => typeMapping.lifetime = 'per-request'
+            }
         };
+
+        return {
+            useType: (t: Constructor<T>) => use(m => m.useType = t),
+            useRequestedType: () => use(m => m.useType = requestingType),
+            useFactory: (f: () => T) => use(m => m.useFactory = f)
+        };
+    }
+
+    private createNewTypeMapping(requestingType: Constructor): TypeMapping {
+        return {
+            requestingType,
+            lifetime: 'per-request'
+        };
+    }
+
+    private findTypeMappingForConstructor(constructor: Constructor): TypeMapping {
+        for(let mapping of this._typeMappings) {
+            if(mapping.requestingType !== constructor)
+                continue;
+
+            return mapping;
+        }
+
+        const mapping = this.createNewTypeMapping(constructor);
+        return mapping;
     }
 
     resolve<T>(typeToResolve: Constructor<T>): T {
@@ -32,33 +88,19 @@ export class Container {
             let job = resolveJobs[resolveJobs.length - 1];
 
             try {
-                const parentJob = job.parent;
+                const mapping = this.findTypeMappingForConstructor(job.constructor);
 
-                let constructor = job.constructor;
+                let constructor = mapping.useType || mapping.requestingType;
                 const className = extractClassName(constructor);
 
-                for(let mapping of this._typeMappings) {
-                    if(mapping.requestingType !== constructor)
-                        continue;
-
-                    constructor = mapping.useType;
-                    break;
-                }
-
-                if(constructor === String || constructor === Number)
+                if(constructor === String || constructor === Number || constructor === Boolean)
                     throw new Error('Simple types (in this case ' + className + ') can\'t be injected.');
 
                 const argumentInjectionInstanceDictionary = job.argumentInjectionDictionary;
-                const parentArgumentInjectionInstanceDictionary = parentJob && parentJob.argumentInjectionDictionary;
-
                 if(argumentInjectionInstanceDictionary.getParameterIndexes().length === job.argumentCount) {
-                    const instance = new (constructor as any)(...argumentInjectionInstanceDictionary.toParameterArray());
-                    if(parentJob === null)
+                    const instance = this.createInstance(job, mapping, resolveJobs);
+                    if(instance)
                         return instance;
-
-                    parentArgumentInjectionInstanceDictionary.updateParameterAtIndex(job.argumentIndex, instance);
-
-                    resolveJobs.splice(resolveJobs.length - 1, 1);
 
                     continue;
                 }
@@ -81,17 +123,14 @@ export class Container {
                         resolveJobs.push(new PendingResolveJob(argumentType, job, argumentIndex));
                     }
                 } else {
-                    const instance = new (constructor as any)();
-                    if(parentJob === null)
+                    const instance = this.createInstance(job, mapping, resolveJobs);
+                    if(instance)
                         return instance;
-
-                    parentArgumentInjectionInstanceDictionary.updateParameterAtIndex(job.argumentIndex, instance);
-
-                    resolveJobs.splice(resolveJobs.length - 1, 1);
-
-                    continue;
                 }
             } catch(ex) {
+                if(!(ex instanceof Error))
+                    ex = new Error(ex);
+
                 let path = extractClassName(job.constructor);
                 let pathCount = 1;
 
@@ -124,12 +163,50 @@ export class Container {
                     indentCount--;
                 }
 
-                console && console.error('An error occured while resolving:\n-> ' + path + '\n\n', ex);
-
-                throw ex;
+                throw new Error('An error occured while resolving:\n-> ' + path + '\n\n' + ex + '\n' + ex.stacktrace);
             }
         }
 
         throw new Error('Could not find a type to use for ' + extractClassName(typeToResolve) + '.');
+    }
+
+    private getSingletonCacheEntry(type: Constructor) {
+        for(let singletonInstance of this._singletonCache) {
+            if(singletonInstance.type === type)
+                return singletonInstance;
+        }
+
+        return null;
+    }
+
+    private createInstance(job: PendingResolveJob, mapping: TypeMapping, resolveJobs: PendingResolveJob[]): any {
+        const parentJob = job.parent;
+        const parentArgumentInjectionInstanceDictionary = parentJob && parentJob.argumentInjectionDictionary;
+        
+        const instanceFactory = () => {
+            if(mapping.useFactory)
+                return mapping.useFactory();
+
+            return new (mapping.useType || (mapping.requestingType as any))(
+                ...job.argumentInjectionDictionary.toParameterArray());
+        };
+
+        let instance: any;
+        const singletonCacheEntry = this.getSingletonCacheEntry(mapping.requestingType);
+
+        if(singletonCacheEntry) {
+            instance = singletonCacheEntry.instance || (singletonCacheEntry.instance = instanceFactory());
+        } else {
+            instance = instanceFactory();
+        }
+
+        if(parentJob === null)
+            return instance;
+
+        parentArgumentInjectionInstanceDictionary.updateParameterAtIndex(job.argumentIndex, instance);
+
+        resolveJobs.splice(resolveJobs.length - 1, 1);
+
+        return null;
     }
 }

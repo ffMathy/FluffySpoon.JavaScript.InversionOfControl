@@ -1,17 +1,4 @@
 "use strict";
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    }
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -68,19 +55,16 @@ var A1 = /** @class */ (function () {
     ], A1);
     return A1;
 }());
-var ExplodingB2 = /** @class */ (function (_super) {
-    __extends(ExplodingB2, _super);
+var ExplodingB2 = /** @class */ (function () {
     function ExplodingB2() {
-        var _this = this;
         throw new Error('Too bad');
-        return _this;
     }
     ExplodingB2 = __decorate([
         src_1.Injectable,
         __metadata("design:paramtypes", [])
     ], ExplodingB2);
     return ExplodingB2;
-}(B2));
+}());
 var Bar = /** @class */ (function () {
     function Bar(a, b, c) {
         this.a = a;
@@ -111,11 +95,22 @@ ava_1.default('can resolve Bar', function (t) {
     t.not(bar.a.c, null);
     t.not(bar.b, null);
     t.not(bar.c, null);
+});
+ava_1.default('can resolve Bar with instance per request', function (t) {
+    var bar = container.resolve(Bar);
     t.not(bar.c, bar.b);
     t.not(bar.c, bar.a.b);
 });
 ava_1.default('explodes when using exploding dependency for Bar', function (t) {
     container.whenRequestingType(B2).useType(ExplodingB2);
+    t.throws(function () { return container.resolve(Bar); }, function (ex) {
+        return ex.message.indexOf("An error occured while resolving:\n-> Bar\n   -> A1\n      -> B2\n\nError: Too bad") === 0;
+    });
+});
+ava_1.default('can resolve Bar with singleton A2', function (t) {
+    container.whenRequestingType(A2).useRequestedType().asSingleInstance();
     var bar = container.resolve(Bar);
+    t.is(bar.c, bar.b);
+    t.is(bar.c, bar.a.b);
 });
 //# sourceMappingURL=index.test.js.map
