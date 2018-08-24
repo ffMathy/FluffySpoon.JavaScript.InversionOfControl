@@ -38,6 +38,23 @@ var A2 = /** @class */ (function () {
     ], A2);
     return A2;
 }());
+var A1Circular = /** @class */ (function () {
+    function A1Circular(a, c, b) {
+        this.a = a;
+        this.c = c;
+        this.b = b;
+    }
+    A1Circular = __decorate([
+        src_1.Injectable,
+        __param(0, src_1.Inject),
+        __param(1, src_1.Inject),
+        __param(2, src_1.Inject),
+        __metadata("design:paramtypes", [B1,
+            B2,
+            A1Circular])
+    ], A1Circular);
+    return A1Circular;
+}());
 var A1 = /** @class */ (function () {
     function A1(a, c, b) {
         this.a = a;
@@ -82,6 +99,23 @@ var Bar = /** @class */ (function () {
     ], Bar);
     return Bar;
 }());
+var BarCircular = /** @class */ (function () {
+    function BarCircular(a, b, c) {
+        this.a = a;
+        this.b = b;
+        this.c = c;
+    }
+    BarCircular = __decorate([
+        src_1.Injectable,
+        __param(0, src_1.Inject),
+        __param(1, src_1.Inject),
+        __param(2, src_1.Inject),
+        __metadata("design:paramtypes", [A1Circular,
+            A2,
+            A2])
+    ], BarCircular);
+    return BarCircular;
+}());
 var container;
 ava_1.default.beforeEach(function () {
     container = new src_1.Container();
@@ -105,6 +139,11 @@ ava_1.default('explodes when using exploding dependency for Bar', function (t) {
     container.whenRequestingType(B2).useType(ExplodingB2);
     t.throws(function () { return container.resolve(Bar); }, function (ex) {
         return ex.message.indexOf("An error occured while resolving:\n-> Bar\n   -> A1\n      -> B2\n\nError: Too bad") === 0;
+    });
+});
+ava_1.default('explodes when using circular dependencies', function (t) {
+    t.throws(function () { return container.resolve(BarCircular); }, function (ex) {
+        return ex.message.indexOf("An error occured while resolving:\n-> BarCircular\n   -> A1Circular\n      -> A1Circular\n\nError: A circular dependency was detected. This can't be resolved and is a code smell.") === 0;
     });
 });
 ava_1.default('can resolve Bar with singleton A2', function (t) {

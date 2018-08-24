@@ -21,6 +21,7 @@ export declare class Container {
     private createNewTypeMapping;
     private findTypeMappingForConstructor;
     resolve<T>(typeToResolve: Constructor<T>): T;
+    private getPathDescription;
     private getSingletonCacheEntry;
     private createInstance;
 }

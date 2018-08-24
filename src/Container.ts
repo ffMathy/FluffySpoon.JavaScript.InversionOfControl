@@ -86,8 +86,23 @@ export class Container {
 
         while(resolveJobs.length > 0) {
             let job = resolveJobs[resolveJobs.length - 1];
+            let path = new Array<PendingResolveJob>();
+
+            let jobIteration = job;
+            while(true) {
+                path.push(jobIteration);
+
+                jobIteration = jobIteration.parent;
+                if(!jobIteration)
+                    break;
+            }
 
             try {
+                for(var i=1;i<path.length;i++) {
+                    if(path[i].constructor === job.constructor)
+                        throw new Error('A circular dependency was detected. This can\'t be resolved and is a code smell.');
+                }
+
                 const mapping = this.findTypeMappingForConstructor(job.constructor);
 
                 let constructor = mapping.useType || mapping.requestingType;
@@ -131,43 +146,35 @@ export class Container {
                 if(!(ex instanceof Error))
                     ex = new Error(ex);
 
-                let path = extractClassName(job.constructor);
-                let pathCount = 1;
+                let pathDescription = this.getPathDescription(path);
 
-                let jobIteration: PendingResolveJob;
-
-                jobIteration = job;
-                while(true) {
-                    jobIteration = jobIteration.parent;
-                    if(!jobIteration)
-                        break;
-                    
-                    pathCount++;
-                }
-
-                let indentCount = pathCount - 1;
-
-                jobIteration = job;
-                while(true) {
-                    jobIteration = jobIteration.parent;
-                    if(!jobIteration)
-                        break;
-
-                    let indent = '';
-                    for(var i=0;i<indentCount;i++) {
-                        indent += '   ';
-                    }
-                    
-                    path = extractClassName(jobIteration.constructor) + '\n' + indent + '-> ' + path;
-
-                    indentCount--;
-                }
-
-                throw new Error('An error occured while resolving:\n-> ' + path + '\n\n' + ex + '\n' + ex.stacktrace);
+                throw new Error('An error occured while resolving:\n-> ' + pathDescription + '\n\n' + ex + (ex.stacktrace ? '\n' + ex.stacktrace : ''));
             }
         }
 
         throw new Error('Could not find a type to use for ' + extractClassName(typeToResolve) + '.');
+    }
+
+    private getPathDescription(path: Array<PendingResolveJob>) {
+        let pathDescription = extractClassName(path[0].constructor);
+        let pathCount = path.length;
+
+        let indentCount = pathCount-1;
+
+        for(var i=1;i<path.length;i++) {
+            const job = path[i];
+
+            let indent = '';
+            for(var x=0;x<indentCount;x++) {
+                indent += '   ';
+            }
+            
+            pathDescription = extractClassName(job.constructor) + '\n' + indent + '-> ' + pathDescription;
+
+            indentCount--;
+        }
+
+        return pathDescription;
     }
 
     private getSingletonCacheEntry(type: Constructor) {

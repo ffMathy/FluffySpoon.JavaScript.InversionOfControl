@@ -17,6 +17,16 @@ class A2 {
 }
 
 @Injectable
+class A1Circular {
+    constructor(
+        @Inject public a: B1,
+        @Inject public c: B2,
+        @Inject public b: A1Circular) 
+    {
+    }
+}
+
+@Injectable
 class A1 {
     constructor(
         @Inject public a: B1,
@@ -37,6 +47,16 @@ class ExplodingB2 {
 class Bar {
     constructor(
         @Inject public a: A1, 
+        @Inject public b: A2, 
+        @Inject public c: A2) 
+    {
+    }
+}
+
+@Injectable
+class BarCircular {
+    constructor(
+        @Inject public a: A1Circular, 
         @Inject public b: A2, 
         @Inject public c: A2) 
     {
@@ -82,6 +102,18 @@ test('explodes when using exploding dependency for Bar', t => {
       -> B2
 
 Error: Too bad`) === 0);
+});
+
+test('explodes when using circular dependencies', t => {
+
+    t.throws(() => container.resolve(BarCircular), (ex) => 
+        ex.message.indexOf(
+`An error occured while resolving:
+-> BarCircular
+   -> A1Circular
+      -> A1Circular
+
+Error: A circular dependency was detected. This can't be resolved and is a code smell.`) === 0);
 });
 
 test('can resolve Bar with singleton A2', t => {

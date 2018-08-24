@@ -62,7 +62,19 @@ var Container = /** @class */ (function () {
         resolveJobs.push(new PendingResolveJob_1.PendingResolveJob(typeToResolve, null, null));
         while (resolveJobs.length > 0) {
             var job = resolveJobs[resolveJobs.length - 1];
+            var path = new Array();
+            var jobIteration = job;
+            while (true) {
+                path.push(jobIteration);
+                jobIteration = jobIteration.parent;
+                if (!jobIteration)
+                    break;
+            }
             try {
+                for (var i = 1; i < path.length; i++) {
+                    if (path[i].constructor === job.constructor)
+                        throw new Error('A circular dependency was detected. This can\'t be resolved and is a code smell.');
+                }
                 var mapping = this.findTypeMappingForConstructor(job.constructor);
                 var constructor = mapping.useType || mapping.requestingType;
                 var className = Utilities_1.extractClassName(constructor);
@@ -99,33 +111,26 @@ var Container = /** @class */ (function () {
             catch (ex) {
                 if (!(ex instanceof Error))
                     ex = new Error(ex);
-                var path = Utilities_1.extractClassName(job.constructor);
-                var pathCount = 1;
-                var jobIteration = void 0;
-                jobIteration = job;
-                while (true) {
-                    jobIteration = jobIteration.parent;
-                    if (!jobIteration)
-                        break;
-                    pathCount++;
-                }
-                var indentCount = pathCount - 1;
-                jobIteration = job;
-                while (true) {
-                    jobIteration = jobIteration.parent;
-                    if (!jobIteration)
-                        break;
-                    var indent = '';
-                    for (var i = 0; i < indentCount; i++) {
-                        indent += '   ';
-                    }
-                    path = Utilities_1.extractClassName(jobIteration.constructor) + '\n' + indent + '-> ' + path;
-                    indentCount--;
-                }
-                throw new Error('An error occured while resolving:\n-> ' + path + '\n\n' + ex + '\n' + ex.stacktrace);
+                var pathDescription = this.getPathDescription(path);
+                throw new Error('An error occured while resolving:\n-> ' + pathDescription + '\n\n' + ex + (ex.stacktrace ? '\n' + ex.stacktrace : ''));
             }
         }
         throw new Error('Could not find a type to use for ' + Utilities_1.extractClassName(typeToResolve) + '.');
+    };
+    Container.prototype.getPathDescription = function (path) {
+        var pathDescription = Utilities_1.extractClassName(path[0].constructor);
+        var pathCount = path.length;
+        var indentCount = pathCount - 1;
+        for (var i = 1; i < path.length; i++) {
+            var job = path[i];
+            var indent = '';
+            for (var x = 0; x < indentCount; x++) {
+                indent += '   ';
+            }
+            pathDescription = Utilities_1.extractClassName(job.constructor) + '\n' + indent + '-> ' + pathDescription;
+            indentCount--;
+        }
+        return pathDescription;
     };
     Container.prototype.getSingletonCacheEntry = function (type) {
         for (var _i = 0, _a = this._singletonCache; _i < _a.length; _i++) {
