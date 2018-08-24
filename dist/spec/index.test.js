@@ -99,6 +99,19 @@ var Bar = /** @class */ (function () {
     ], Bar);
     return Bar;
 }());
+var BarWithInterface = /** @class */ (function () {
+    function BarWithInterface(a, b) {
+        this.a = a;
+        this.b = b;
+    }
+    BarWithInterface = __decorate([
+        src_1.Injectable,
+        __param(0, src_1.Inject),
+        __param(1, src_1.Inject),
+        __metadata("design:paramtypes", [A1, Object])
+    ], BarWithInterface);
+    return BarWithInterface;
+}());
 var BarCircular = /** @class */ (function () {
     function BarCircular(a, b, c) {
         this.a = a;
@@ -146,10 +159,9 @@ ava_1.default('explodes when using circular dependencies', function (t) {
         return ex.message.indexOf("An error occured while resolving:\n-> BarCircular\n   -> A1Circular\n      -> A1Circular\n\nError: A circular dependency was detected. This can't be resolved and is a code smell.") === 0;
     });
 });
-ava_1.default('can resolve Bar with singleton A2', function (t) {
-    container.whenRequestingType(A2).useRequestedType().asSingleInstance();
-    var bar = container.resolve(Bar);
-    t.is(bar.c, bar.b);
-    t.is(bar.c, bar.a.b);
+ava_1.default('can resolve Bar with interfaces', function (t) {
+    t.throws(function () { return container.resolve(BarWithInterface); }, function (ex) {
+        return ex.message.indexOf("An error occured while resolving:\n-> BarWithInterface\n   -> Object\n\nError: A dependency of type Object could not be resolved. Make sure the dependency is of a class (not an interface) type, and that it has the @Injectable decorator set.") === 0;
+    });
 });
 //# sourceMappingURL=index.test.js.map

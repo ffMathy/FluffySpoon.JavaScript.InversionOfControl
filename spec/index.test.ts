@@ -16,6 +16,10 @@ class A2 {
 
 }
 
+interface MyInterface {
+
+}
+
 @Injectable
 class A1Circular {
     constructor(
@@ -49,6 +53,15 @@ class Bar {
         @Inject public a: A1, 
         @Inject public b: A2, 
         @Inject public c: A2) 
+    {
+    }
+}
+
+@Injectable
+class BarWithInterface {
+    constructor(
+        @Inject public a: A1, 
+        @Inject public b: MyInterface) 
     {
     }
 }
@@ -105,7 +118,6 @@ Error: Too bad`) === 0);
 });
 
 test('explodes when using circular dependencies', t => {
-
     t.throws(() => container.resolve(BarCircular), (ex) => 
         ex.message.indexOf(
 `An error occured while resolving:
@@ -116,11 +128,12 @@ test('explodes when using circular dependencies', t => {
 Error: A circular dependency was detected. This can't be resolved and is a code smell.`) === 0);
 });
 
-test('can resolve Bar with singleton A2', t => {
-    container.whenRequestingType(A2).useRequestedType().asSingleInstance();
+test('can resolve Bar with interfaces', t => {
+    t.throws(() => container.resolve(BarWithInterface), (ex) => 
+        ex.message.indexOf(
+`An error occured while resolving:
+-> BarWithInterface
+   -> Object
 
-    const bar = container.resolve(Bar);
-
-    t.is(bar.c, bar.b);
-    t.is(bar.c, bar.a.b);
+Error: A dependency of type Object could not be resolved. Make sure the dependency is of a class (not an interface) type, and that it has the @Injectable decorator set.`) === 0);
 });

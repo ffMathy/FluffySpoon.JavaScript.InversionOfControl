@@ -108,6 +108,9 @@ export class Container {
                 let constructor = mapping.useType || mapping.requestingType;
                 const className = extractClassName(constructor);
 
+                if(constructor === Object)
+                    throw new Error('A dependency of type ' + className + ' could not be resolved. Make sure the dependency is of a class (not an interface) type, and that it has the @Injectable decorator set.');
+
                 if(constructor === String || constructor === Number || constructor === Boolean)
                     throw new Error('Simple types (in this case ' + className + ') can\'t be injected.');
 
