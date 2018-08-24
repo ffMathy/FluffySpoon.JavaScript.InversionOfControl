@@ -19,12 +19,17 @@ export class Container {
         instance: any
     }>;
 
+    private _hasResolvedBefore: boolean;
+
     constructor() {
         this._typeMappings = [];
         this._singletonCache = [];
     }
 
-    whenRequestingType<T>(requestingType: Constructor<T>) {
+    whenResolvingType<T>(requestingType: Constructor<T>) {
+        if(this._hasResolvedBefore)
+            throw new Error('The container can\'t be configured after you have used it to resolve an instance of a type.');
+
         const typeMapping: TypeMapping = this.createNewTypeMapping(requestingType);
 
         for(let existingTypeMapping of [...this._typeMappings]) {
@@ -61,34 +66,9 @@ export class Container {
         };
     }
 
-    private createNewTypeMapping(requestingType: Constructor): TypeMapping {
-        return {
-            requestingType,
-            lifetime: 'per-request'
-        };
-    }
+    resolveInstance<T>(typeToResolve: Constructor<T>): T {
+        this._hasResolvedBefore = true;
 
-    private findTypeMappingForConstructor(constructor: Constructor): TypeMapping {
-        for(let mapping of this._typeMappings) {
-            if(mapping.requestingType !== constructor)
-                continue;
-
-            return mapping;
-        }
-
-        const mapping = this.createNewTypeMapping(constructor);
-        return mapping;
-    }
-
-    resolveType<T extends Constructor>(typeToResolve: T): T {
-        const mapping = this.findTypeMappingForConstructor(typeToResolve);
-        if(mapping.useFactory)
-            throw new Error('The type ' + extractClassName(typeToResolve) + ' doesn\'t resolve to a type - a factory is used instead.')
-
-        return (mapping.useType as any) || (mapping.requestingType as any);
-    }
-
-    resolve<T>(typeToResolve: Constructor<T>): T {
         const resolveJobs = new Array<PendingResolveJob>();
         resolveJobs.push(new PendingResolveJob(typeToResolve, null, null));
 
@@ -164,6 +144,25 @@ export class Container {
         }
 
         throw new Error('Could not find a type to use for ' + extractClassName(typeToResolve) + '.');
+    }
+
+    private createNewTypeMapping(requestingType: Constructor): TypeMapping {
+        return {
+            requestingType,
+            lifetime: 'per-request'
+        };
+    }
+
+    private findTypeMappingForConstructor(constructor: Constructor): TypeMapping {
+        for(let mapping of this._typeMappings) {
+            if(mapping.requestingType !== constructor)
+                continue;
+
+            return mapping;
+        }
+
+        const mapping = this.createNewTypeMapping(constructor);
+        return mapping;
     }
 
     private getPathDescription(path: Array<PendingResolveJob>) {

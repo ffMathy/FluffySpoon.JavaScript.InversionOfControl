@@ -8,8 +8,10 @@ var Container = /** @class */ (function () {
         this._typeMappings = [];
         this._singletonCache = [];
     }
-    Container.prototype.whenRequestingType = function (requestingType) {
+    Container.prototype.whenResolvingType = function (requestingType) {
         var _this = this;
+        if (this._hasResolvedBefore)
+            throw new Error('The container can\'t be configured after you have used it to resolve an instance of a type.');
         var typeMapping = this.createNewTypeMapping(requestingType);
         for (var _i = 0, _a = this._typeMappings.slice(); _i < _a.length; _i++) {
             var existingTypeMapping = _a[_i];
@@ -41,29 +43,8 @@ var Container = /** @class */ (function () {
             useFactory: function (f) { return use(function (m) { return m.useFactory = f; }); }
         };
     };
-    Container.prototype.createNewTypeMapping = function (requestingType) {
-        return {
-            requestingType: requestingType,
-            lifetime: 'per-request'
-        };
-    };
-    Container.prototype.findTypeMappingForConstructor = function (constructor) {
-        for (var _i = 0, _a = this._typeMappings; _i < _a.length; _i++) {
-            var mapping_1 = _a[_i];
-            if (mapping_1.requestingType !== constructor)
-                continue;
-            return mapping_1;
-        }
-        var mapping = this.createNewTypeMapping(constructor);
-        return mapping;
-    };
-    Container.prototype.resolveType = function (typeToResolve) {
-        var mapping = this.findTypeMappingForConstructor(typeToResolve);
-        if (mapping.useFactory)
-            throw new Error('The type ' + Utilities_1.extractClassName(typeToResolve) + ' doesn\'t resolve to a type - a factory is used instead.');
-        return mapping.useType || mapping.requestingType;
-    };
-    Container.prototype.resolve = function (typeToResolve) {
+    Container.prototype.resolveInstance = function (typeToResolve) {
+        this._hasResolvedBefore = true;
         var resolveJobs = new Array();
         resolveJobs.push(new PendingResolveJob_1.PendingResolveJob(typeToResolve, null, null));
         while (resolveJobs.length > 0) {
@@ -124,6 +105,22 @@ var Container = /** @class */ (function () {
             }
         }
         throw new Error('Could not find a type to use for ' + Utilities_1.extractClassName(typeToResolve) + '.');
+    };
+    Container.prototype.createNewTypeMapping = function (requestingType) {
+        return {
+            requestingType: requestingType,
+            lifetime: 'per-request'
+        };
+    };
+    Container.prototype.findTypeMappingForConstructor = function (constructor) {
+        for (var _i = 0, _a = this._typeMappings; _i < _a.length; _i++) {
+            var mapping_1 = _a[_i];
+            if (mapping_1.requestingType !== constructor)
+                continue;
+            return mapping_1;
+        }
+        var mapping = this.createNewTypeMapping(constructor);
+        return mapping;
     };
     Container.prototype.getPathDescription = function (path) {
         var pathDescription = Utilities_1.extractClassName(path[0].constructor);

@@ -83,7 +83,7 @@ test.beforeEach(() => {
 });
 
 test('can resolve Bar', t => {
-    const bar = container.resolve(Bar);
+    const bar = container.resolveInstance(Bar);
 
     t.not(bar, null);
 
@@ -98,16 +98,16 @@ test('can resolve Bar', t => {
 });
 
 test('can resolve Bar with instance per request', t => {
-    const bar = container.resolve(Bar);
+    const bar = container.resolveInstance(Bar);
     
     t.not(bar.c, bar.b);
     t.not(bar.c, bar.a.b);
 });
 
 test('explodes when using exploding dependency for Bar', t => {
-    container.whenRequestingType(B2).useType(ExplodingB2);
+    container.whenResolvingType(B2).useType(ExplodingB2);
 
-    t.throws(() => container.resolve(Bar), (ex) => 
+    t.throws(() => container.resolveInstance(Bar), (ex) => 
         ex.message.indexOf(
 `An error occured while resolving:
 -> Bar
@@ -118,7 +118,7 @@ Error: Too bad`) === 0);
 });
 
 test('explodes when using circular dependencies', t => {
-    t.throws(() => container.resolve(BarCircular), (ex) => 
+    t.throws(() => container.resolveInstance(BarCircular), (ex) => 
         ex.message.indexOf(
 `An error occured while resolving:
 -> BarCircular
@@ -129,7 +129,7 @@ Error: A circular dependency was detected. This can't be resolved and is a code 
 });
 
 test('can resolve Bar with interfaces', t => {
-    t.throws(() => container.resolve(BarWithInterface), (ex) => 
+    t.throws(() => container.resolveInstance(BarWithInterface), (ex) => 
         ex.message.indexOf(
 `An error occured while resolving:
 -> BarWithInterface

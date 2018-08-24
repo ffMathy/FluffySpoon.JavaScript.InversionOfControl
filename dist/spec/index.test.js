@@ -134,7 +134,7 @@ ava_1.default.beforeEach(function () {
     container = new src_1.Container();
 });
 ava_1.default('can resolve Bar', function (t) {
-    var bar = container.resolve(Bar);
+    var bar = container.resolveInstance(Bar);
     t.not(bar, null);
     t.not(bar.a, null);
     t.not(bar.a.a, null);
@@ -144,23 +144,23 @@ ava_1.default('can resolve Bar', function (t) {
     t.not(bar.c, null);
 });
 ava_1.default('can resolve Bar with instance per request', function (t) {
-    var bar = container.resolve(Bar);
+    var bar = container.resolveInstance(Bar);
     t.not(bar.c, bar.b);
     t.not(bar.c, bar.a.b);
 });
 ava_1.default('explodes when using exploding dependency for Bar', function (t) {
-    container.whenRequestingType(B2).useType(ExplodingB2);
-    t.throws(function () { return container.resolve(Bar); }, function (ex) {
+    container.whenResolvingType(B2).useType(ExplodingB2);
+    t.throws(function () { return container.resolveInstance(Bar); }, function (ex) {
         return ex.message.indexOf("An error occured while resolving:\n-> Bar\n   -> A1\n      -> B2\n\nError: Too bad") === 0;
     });
 });
 ava_1.default('explodes when using circular dependencies', function (t) {
-    t.throws(function () { return container.resolve(BarCircular); }, function (ex) {
+    t.throws(function () { return container.resolveInstance(BarCircular); }, function (ex) {
         return ex.message.indexOf("An error occured while resolving:\n-> BarCircular\n   -> A1Circular\n      -> A1Circular\n\nError: A circular dependency was detected. This can't be resolved and is a code smell.") === 0;
     });
 });
 ava_1.default('can resolve Bar with interfaces', function (t) {
-    t.throws(function () { return container.resolve(BarWithInterface); }, function (ex) {
+    t.throws(function () { return container.resolveInstance(BarWithInterface); }, function (ex) {
         return ex.message.indexOf("An error occured while resolving:\n-> BarWithInterface\n   -> Object\n\nError: A dependency of type Object could not be resolved. Make sure the dependency is of a class (not an interface) type, and that it has the @Injectable decorator set.") === 0;
     });
 });

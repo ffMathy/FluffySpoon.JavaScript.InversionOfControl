@@ -3,8 +3,9 @@ import { Constructor } from "./Types";
 export declare class Container {
     private readonly _typeMappings;
     private readonly _singletonCache;
+    private _hasResolvedBefore;
     constructor();
-    whenRequestingType<T>(requestingType: Constructor<T>): {
+    whenResolvingType<T>(requestingType: Constructor<T>): {
         useType: (t: Constructor<T>) => {
             asSingleInstance: () => void;
             asInstancePerRequest: () => string;
@@ -18,10 +19,9 @@ export declare class Container {
             asInstancePerRequest: () => string;
         };
     };
+    resolveInstance<T>(typeToResolve: Constructor<T>): T;
     private createNewTypeMapping;
     private findTypeMappingForConstructor;
-    resolveType<T extends Constructor>(typeToResolve: T): T;
-    resolve<T>(typeToResolve: Constructor<T>): T;
     private getPathDescription;
     private getSingletonCacheEntry;
     private createInstance;
