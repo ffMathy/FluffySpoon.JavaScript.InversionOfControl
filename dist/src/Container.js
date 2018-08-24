@@ -57,6 +57,12 @@ var Container = /** @class */ (function () {
         var mapping = this.createNewTypeMapping(constructor);
         return mapping;
     };
+    Container.prototype.resolveType = function (typeToResolve) {
+        var mapping = this.findTypeMappingForConstructor(typeToResolve);
+        if (mapping.useFactory)
+            throw new Error('The type ' + Utilities_1.extractClassName(typeToResolve) + ' doesn\'t resolve to a type - a factory is used instead.');
+        return mapping.useType || mapping.requestingType;
+    };
     Container.prototype.resolve = function (typeToResolve) {
         var resolveJobs = new Array();
         resolveJobs.push(new PendingResolveJob_1.PendingResolveJob(typeToResolve, null, null));
