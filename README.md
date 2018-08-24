@@ -1,3 +1,4 @@
+# Installing
 `npm i @fluffy-spoon/inverse --save-dev`
 
 # Examples
