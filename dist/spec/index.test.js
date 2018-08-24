@@ -164,11 +164,4 @@ ava_1.default('can resolve Bar with interfaces', function (t) {
         return ex.message.indexOf("An error occured while resolving:\n-> BarWithInterface\n   -> Object\n\nError: A dependency of type Object could not be resolved. Make sure the dependency is of a class (not an interface) type, and that it has the @Injectable decorator set.") === 0;
     });
 });
-ava_1.default('can resolve types', function (t) {
-    t.is(container.resolveType(Bar), Bar);
-});
-ava_1.default('can resolve types when another type is used', function (t) {
-    container.whenRequestingType(B1).useType(B2);
-    t.is(container.resolveType(B1), B2);
-});
 //# sourceMappingURL=index.test.js.map
