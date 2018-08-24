@@ -4,7 +4,7 @@
 # Examples
 These examples assume that there's a `Bar` class which as some dependencies (`A1` and `A2`), which then further have some dependencies (`B1` and `B2`) as shown below.
 
-_Note how every class has an `Injectable` decorator, and how every dependency has an `Inject` decorator. That's all that is needed!_
+_Note how every class has an `Injectable` decorator, and how every dependency has an `Inject` decorator. That's all that is needed! The examples below would work for exported classes from separate files too._
 
 ```typescript
 @Injectable
