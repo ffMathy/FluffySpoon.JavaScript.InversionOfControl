@@ -80,12 +80,12 @@ export class Container {
         return mapping;
     }
 
-    resolveType<T>(typeToResolve: Constructor<T>): Constructor<T> {
+    resolveType<T extends Constructor>(typeToResolve: T): T {
         const mapping = this.findTypeMappingForConstructor(typeToResolve);
         if(mapping.useFactory)
             throw new Error('The type ' + extractClassName(typeToResolve) + ' doesn\'t resolve to a type - a factory is used instead.')
 
-        return mapping.useType || mapping.requestingType;
+        return (mapping.useType as any) || (mapping.requestingType as any);
     }
 
     resolve<T>(typeToResolve: Constructor<T>): T {
