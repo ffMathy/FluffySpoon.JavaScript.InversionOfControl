@@ -1,4 +1,4 @@
-`fluff7-spoon/inverse` is an Inversion of Control framework.
+`fluffy-spoon/inverse` is an Inversion of Control framework.
 
 # Installing
 `npm i @fluffy-spoon/inverse --save-dev`
