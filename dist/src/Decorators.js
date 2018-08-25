@@ -2,12 +2,16 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 require("reflect-metadata");
 var Utilities_1 = require("./Utilities");
-function addInjectableMetadata(sourceConstructor, destinationConstructor) {
-    var className = Utilities_1.extractClassName(sourceConstructor);
-    var type = Reflect.getMetadata("design:paramtypes", sourceConstructor);
-    Utilities_1.defineMetadata(destinationConstructor, 'name', className);
-    Utilities_1.defineMetadata(destinationConstructor, 'argumentCount', !type ? 0 : type.length);
-    var argumentInjectionDictionary = Utilities_1.getOrCreateArgumentsMetadataForTarget(sourceConstructor);
+function getParameterTypesMetadata(target) {
+    return Reflect.getMetadata("design:paramtypes", target);
+}
+exports.getParameterTypesMetadata = getParameterTypesMetadata;
+function addInjectableMetadata(constructor) {
+    var className = Utilities_1.extractClassName(constructor);
+    var type = getParameterTypesMetadata(constructor);
+    Utilities_1.defineMetadata(constructor, 'name', className);
+    Utilities_1.defineMetadata(constructor, 'argumentCount', !type ? 0 : type.length);
+    var argumentInjectionDictionary = Utilities_1.getOrCreateArgumentsMetadataForTarget(constructor);
     var argumentIndexes = argumentInjectionDictionary.getParameterIndexes();
     for (var _i = 0, argumentIndexes_1 = argumentIndexes; _i < argumentIndexes_1.length; _i++) {
         var argumentIndex = argumentIndexes_1[_i];
@@ -18,7 +22,7 @@ function addInjectableMetadata(sourceConstructor, destinationConstructor) {
 }
 exports.addInjectableMetadata = addInjectableMetadata;
 function Injectable(constructor) {
-    addInjectableMetadata(constructor, constructor);
+    addInjectableMetadata(constructor);
     return constructor;
 }
 exports.Injectable = Injectable;

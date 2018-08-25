@@ -2,15 +2,19 @@ import "reflect-metadata";
 
 import { defineMetadata, getOrCreateArgumentsMetadataForTarget, extractClassName } from "./Utilities";
 
-export function addInjectableMetadata(sourceConstructor: any, destinationConstructor: any) {
-    const className = extractClassName(sourceConstructor);
+export function getParameterTypesMetadata(target) {
+    return Reflect.getMetadata("design:paramtypes", target);
+}
 
-    let type = Reflect.getMetadata("design:paramtypes", sourceConstructor) as any[];
+export function addInjectableMetadata(constructor: any) {
+    const className = extractClassName(constructor);
 
-    defineMetadata(destinationConstructor, 'name', className);
-    defineMetadata(destinationConstructor, 'argumentCount', !type ? 0 : type.length);
+    let type = getParameterTypesMetadata(constructor);
 
-    let argumentInjectionDictionary = getOrCreateArgumentsMetadataForTarget(sourceConstructor);
+    defineMetadata(constructor, 'name', className);
+    defineMetadata(constructor, 'argumentCount', !type ? 0 : type.length);
+
+    let argumentInjectionDictionary = getOrCreateArgumentsMetadataForTarget(constructor);
 
     let argumentIndexes = argumentInjectionDictionary.getParameterIndexes();
     for(var argumentIndex of argumentIndexes) {
@@ -22,7 +26,7 @@ export function addInjectableMetadata(sourceConstructor: any, destinationConstru
 }
 
 export function Injectable<T extends { new(...args: any[]): any }>(constructor: T) {
-    addInjectableMetadata(constructor, constructor);
+    addInjectableMetadata(constructor);
     return constructor;
 }
 
