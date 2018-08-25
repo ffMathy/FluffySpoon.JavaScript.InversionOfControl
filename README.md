@@ -1,7 +1,7 @@
 `@fluffy-spoon/inverse` is an Inversion of Control framework.
 
 # Installing
-`npm i @fluffy-spoon/inverse --save-dev`
+`npm i @fluffy-spoon/inverse --save`
 
 # Examples
 These examples assume that there's a `Bar` class which as some dependencies (`A1` and `A2`), which then further have some dependencies (`B1` and `B2`) as shown below.
@@ -52,7 +52,7 @@ In the following example, a `Bar` instance is requested from the IOC container. 
 The following code:
 
 ```typescript
-import { Container } from '@fluffy-spoon/inverse';
+import Container from '@fluffy-spoon/inverse';
 
 const container = new Container();
 
@@ -74,7 +74,7 @@ In the below example, we change all `B1` to be instances of `B2` instead. This i
 The following code:
 
 ```typescript
-import { Container } from '@fluffy-spoon/inverse';
+import Container from '@fluffy-spoon/inverse';
 
 const container = new Container();
 container.whenRequestingType(B1).useType(B2);
