@@ -7,7 +7,7 @@ function addInjectableMetadata(sourceConstructor, destinationConstructor) {
     var type = Reflect.getMetadata("design:paramtypes", sourceConstructor);
     Utilities_1.defineMetadata(destinationConstructor, 'name', className);
     Utilities_1.defineMetadata(destinationConstructor, 'argumentCount', !type ? 0 : type.length);
-    var argumentInjectionDictionary = Utilities_1.getOrCreateArgumentsMetadataForTarget(destinationConstructor);
+    var argumentInjectionDictionary = Utilities_1.getOrCreateArgumentsMetadataForTarget(sourceConstructor);
     var argumentIndexes = argumentInjectionDictionary.getParameterIndexes();
     for (var _i = 0, argumentIndexes_1 = argumentIndexes; _i < argumentIndexes_1.length; _i++) {
         var argumentIndex = argumentIndexes_1[_i];

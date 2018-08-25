@@ -10,7 +10,7 @@ export function addInjectableMetadata(sourceConstructor: any, destinationConstru
     defineMetadata(destinationConstructor, 'name', className);
     defineMetadata(destinationConstructor, 'argumentCount', !type ? 0 : type.length);
 
-    let argumentInjectionDictionary = getOrCreateArgumentsMetadataForTarget(destinationConstructor);
+    let argumentInjectionDictionary = getOrCreateArgumentsMetadataForTarget(sourceConstructor);
 
     let argumentIndexes = argumentInjectionDictionary.getParameterIndexes();
     for(var argumentIndex of argumentIndexes) {
