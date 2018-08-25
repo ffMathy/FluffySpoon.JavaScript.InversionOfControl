@@ -2,7 +2,7 @@ import "reflect-metadata";
 
 import { defineMetadata, getOrCreateArgumentsMetadataForTarget, extractClassName } from "./Utilities";
 
-export function Injectable(constructor: any) {
+export function Injectable<T extends { new(...args: any[]): any }>(constructor: T) {
     const className = extractClassName(constructor);
 
     let type = Reflect.getMetadata("design:paramtypes", constructor) as any[];
