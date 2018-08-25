@@ -125,4 +125,4 @@ You can also use:
 # Framework support
 `@fluffy-spoon/inverse` can be used without a framework, but more packages can be used if you want to tightly integrate it.
 
-- **Vue.js:** `[@fluffy-spoon/inverse-vue](https://www.npmjs.com/package/@fluffy-spoon/inverse-vue)`
+- **Vue.js:** [`@fluffy-spoon/inverse-vue`](https://www.npmjs.com/package/@fluffy-spoon/inverse-vue)
