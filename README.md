@@ -121,3 +121,8 @@ const bar = new Bar(
 
 You can also use:
 - `asInstancePerRequest` to create a new instance from the type or factory provided every time (this is default).
+
+# Framework support
+`@fluffy-spoon/inverse` can be used without a framework, but more packages can be used if you want to tightly integrate it.
+
+- **Vue.js:** `[@fluffy-spoon/inverse-vue](https://www.npmjs.com/package/@fluffy-spoon/inverse-vue)`
