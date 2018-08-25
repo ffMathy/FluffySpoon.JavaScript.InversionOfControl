@@ -3,6 +3,19 @@
 # Installing
 `npm i @fluffy-spoon/inverse --save`
 
+# TypeScript requirements
+This framework requires the following values set in your TypeScript configuration (`tsconfig.json`):
+
+```json
+{
+    "compilerOptions": {
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "esModuleInterop": true
+    }
+}
+```
+
 # Examples
 These examples assume that there's a `Bar` class which as some dependencies (`A1` and `A2`), which then further have some dependencies (`B1` and `B2`) as shown below.
 
