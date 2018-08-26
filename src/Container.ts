@@ -12,7 +12,23 @@ type TypeMapping = {
     useFactory?: () => any
 };
 
-export class Container {
+export interface IContainerUseResult {
+    asSingleInstance(): void,
+    asInstancePerRequest(): void
+}
+
+export interface IContainerWhenResult<T> {
+    useType(t: Constructor<T>): IContainerUseResult,
+    useRequestedType(): IContainerUseResult,
+    useFactory(f: () => T): IContainerUseResult
+}
+
+export interface IContainer {
+    whenResolvingType<T>(requestingType: Constructor<T>): IContainerWhenResult<T>,
+    resolveInstance<T>(typeToResolve: Constructor<T>): T
+}
+
+export class Container implements IContainer {
     private readonly _typeMappings: Array<TypeMapping>;
     private readonly _singletonCache: Array<{
         type: Constructor,
@@ -44,7 +60,7 @@ export class Container {
 
         this._typeMappings.push(typeMapping);
 
-        const use = (mappingCallback: (mapping: TypeMapping) => void) => {
+        const use = (mappingCallback: (mapping: TypeMapping) => void): IContainerUseResult => {
             mappingCallback(typeMapping);
 
             return {
