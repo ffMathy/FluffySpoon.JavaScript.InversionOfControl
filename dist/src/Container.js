@@ -43,6 +43,12 @@ var Container = /** @class */ (function () {
             useFactory: function (f) { return use(function (m) { return m.useFactory = f; }); }
         };
     };
+    Container.prototype.resolveType = function (typeToResolve) {
+        var mapping = this.findTypeMappingForConstructor(typeToResolve);
+        if (mapping.useFactory)
+            throw new Error('The type ' + Utilities_1.extractClassName(typeToResolve) + ' doesn\'t resolve to a type - a factory is used instead.');
+        return mapping.useType || mapping.requestingType;
+    };
     Container.prototype.resolveInstance = function (typeToResolve) {
         this._hasResolvedBefore = true;
         var resolveJobs = new Array();
@@ -66,7 +72,7 @@ var Container = /** @class */ (function () {
                 var constructor = mapping.useType || mapping.requestingType;
                 var className = Utilities_1.extractClassName(constructor);
                 if (constructor === Object)
-                    throw new Error('A dependency of type ' + className + ' could not be resolved. Make sure the dependency is of a class (not an interface) type, and that it has the @Injectable decorator set.');
+                    throw new Error('A dependency of type ' + className + ' could not be resolved. Make sure the dependency is of a class (not an interface) type, and that it has the @Injectable decorator set on it.');
                 if (constructor === String || constructor === Number || constructor === Boolean)
                     throw new Error('Simple types (in this case ' + className + ') can\'t be injected.');
                 var argumentInjectionInstanceDictionary = job.argumentInjectionDictionary;

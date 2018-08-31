@@ -23,6 +23,7 @@ export declare class Container implements IContainer {
         useRequestedType: () => IContainerUseResult;
         useFactory: (f: () => T) => IContainerUseResult;
     };
+    resolveType<T extends Constructor>(typeToResolve: T): T;
     resolveInstance<T>(typeToResolve: Constructor<T>): T;
     private createNewTypeMapping;
     private findTypeMappingForConstructor;

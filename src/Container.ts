@@ -82,6 +82,14 @@ export class Container implements IContainer {
         };
     }
 
+    resolveType<T extends Constructor>(typeToResolve: T): T {
+        const mapping = this.findTypeMappingForConstructor(typeToResolve);
+        if(mapping.useFactory)
+            throw new Error('The type ' + extractClassName(typeToResolve) + ' doesn\'t resolve to a type - a factory is used instead.');
+
+        return (mapping.useType as any) || (mapping.requestingType as any);
+    }
+
     resolveInstance<T>(typeToResolve: Constructor<T>): T {
         this._hasResolvedBefore = true;
 
@@ -113,7 +121,7 @@ export class Container implements IContainer {
                 const className = extractClassName(constructor);
 
                 if(constructor === Object)
-                    throw new Error('A dependency of type ' + className + ' could not be resolved. Make sure the dependency is of a class (not an interface) type, and that it has the @Injectable decorator set.');
+                    throw new Error('A dependency of type ' + className + ' could not be resolved. Make sure the dependency is of a class (not an interface) type, and that it has the @Injectable decorator set on it.');
 
                 if(constructor === String || constructor === Number || constructor === Boolean)
                     throw new Error('Simple types (in this case ' + className + ') can\'t be injected.');

@@ -1,4 +1,17 @@
 "use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -112,6 +125,23 @@ var BarWithInterface = /** @class */ (function () {
     ], BarWithInterface);
     return BarWithInterface;
 }());
+function MyMixin(Base) {
+    return /** @class */ (function () {
+        function class_1() {
+        }
+        return class_1;
+    }());
+}
+var BarWithMixin = /** @class */ (function (_super) {
+    __extends(BarWithMixin, _super);
+    function BarWithMixin() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    BarWithMixin = __decorate([
+        src_1.Injectable
+    ], BarWithMixin);
+    return BarWithMixin;
+}(MyMixin(A2)));
 var BarCircular = /** @class */ (function () {
     function BarCircular(a, b, c) {
         this.a = a;
@@ -159,9 +189,16 @@ ava_1.default('explodes when using circular dependencies', function (t) {
         return ex.message.indexOf("An error occured while resolving:\n-> BarCircular\n   -> A1Circular\n      -> A1Circular\n\nError: A circular dependency was detected. This can't be resolved and is a code smell.") === 0;
     });
 });
-ava_1.default('can resolve Bar with interfaces', function (t) {
+ava_1.default('can throw on resolve Bar with interfaces', function (t) {
     t.throws(function () { return container.resolveInstance(BarWithInterface); }, function (ex) {
-        return ex.message.indexOf("An error occured while resolving:\n-> BarWithInterface\n   -> Object\n\nError: A dependency of type Object could not be resolved. Make sure the dependency is of a class (not an interface) type, and that it has the @Injectable decorator set.") === 0;
+        return ex.message.indexOf("An error occured while resolving:\n-> BarWithInterface\n   -> Object\n\nError: A dependency of type Object could not be resolved. Make sure the dependency is of a class (not an interface) type, and that it has the @Injectable decorator set on it.") === 0;
     });
+});
+ava_1.default('can resolve types', function (t) {
+    t.is(container.resolveType(Bar), Bar);
+});
+ava_1.default('can resolve types when another type is used', function (t) {
+    container.whenResolvingType(B1).useType(B2);
+    t.is(container.resolveType(B1), B2);
 });
 //# sourceMappingURL=index.test.js.map

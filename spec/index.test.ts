@@ -66,6 +66,16 @@ class BarWithInterface {
     }
 }
 
+type Constructor<T = {}> = new (...args: any[]) => T;
+function MyMixin<TBase extends Constructor>(Base: TBase) {
+    return class {
+    };
+}
+
+@Injectable
+class BarWithMixin extends MyMixin(A2) {
+}
+
 @Injectable
 class BarCircular {
     constructor(
@@ -128,12 +138,21 @@ test('explodes when using circular dependencies', t => {
 Error: A circular dependency was detected. This can't be resolved and is a code smell.`) === 0);
 });
 
-test('can resolve Bar with interfaces', t => {
+test('can throw on resolve Bar with interfaces', t => {
     t.throws(() => container.resolveInstance(BarWithInterface), (ex) => 
         ex.message.indexOf(
 `An error occured while resolving:
 -> BarWithInterface
    -> Object
 
-Error: A dependency of type Object could not be resolved. Make sure the dependency is of a class (not an interface) type, and that it has the @Injectable decorator set.`) === 0);
+Error: A dependency of type Object could not be resolved. Make sure the dependency is of a class (not an interface) type, and that it has the @Injectable decorator set on it.`) === 0);
+});
+
+test('can resolve types', t => {
+    t.is(container.resolveType(Bar), Bar);
+});
+
+test('can resolve types when another type is used', t => {
+    container.whenResolvingType(B1).useType(B2);
+    t.is(container.resolveType(B1), B2);
 });
