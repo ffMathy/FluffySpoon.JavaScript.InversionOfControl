@@ -16,7 +16,6 @@ export interface IContainer {
 export declare class Container implements IContainer {
     private readonly _typeMappings;
     private readonly _singletonCache;
-    private _hasResolvedBefore;
     constructor();
     whenResolvingType<T>(requestingType: Constructor<T>): {
         useType: (t: Constructor<T>) => IContainerUseResult;

@@ -35,17 +35,12 @@ export class Container implements IContainer {
         instance: any
     }>;
 
-    private _hasResolvedBefore: boolean;
-
     constructor() {
         this._typeMappings = [];
         this._singletonCache = [];
     }
 
     whenResolvingType<T>(requestingType: Constructor<T>) {
-        if(this._hasResolvedBefore)
-            throw new Error('The container can\'t be configured after you have used it to resolve an instance of a type.');
-
         const typeMapping: TypeMapping = this.createNewTypeMapping(requestingType);
 
         for(let existingTypeMapping of [...this._typeMappings]) {
@@ -91,8 +86,6 @@ export class Container implements IContainer {
     }
 
     resolveInstance<T>(typeToResolve: Constructor<T>): T {
-        this._hasResolvedBefore = true;
-
         const resolveJobs = new Array<PendingResolveJob>();
         resolveJobs.push(new PendingResolveJob(typeToResolve, null, null));
 

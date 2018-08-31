@@ -10,8 +10,6 @@ var Container = /** @class */ (function () {
     }
     Container.prototype.whenResolvingType = function (requestingType) {
         var _this = this;
-        if (this._hasResolvedBefore)
-            throw new Error('The container can\'t be configured after you have used it to resolve an instance of a type.');
         var typeMapping = this.createNewTypeMapping(requestingType);
         for (var _i = 0, _a = this._typeMappings.slice(); _i < _a.length; _i++) {
             var existingTypeMapping = _a[_i];
@@ -50,7 +48,6 @@ var Container = /** @class */ (function () {
         return mapping.useType || mapping.requestingType;
     };
     Container.prototype.resolveInstance = function (typeToResolve) {
-        this._hasResolvedBefore = true;
         var resolveJobs = new Array();
         resolveJobs.push(new PendingResolveJob_1.PendingResolveJob(typeToResolve, null, null));
         while (resolveJobs.length > 0) {
