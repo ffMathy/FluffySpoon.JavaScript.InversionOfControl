@@ -13,7 +13,7 @@
     "devDependencies": {
         "ava": "^0.25.0",
         "ts-node": "^7.0.1",
-        "typescript": "^3.0.1"
+        "typescript": "^4.0.2"
     },
     "dependencies": {
         "reflect-metadata": "^0.1.12"
